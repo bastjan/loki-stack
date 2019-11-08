@@ -17,20 +17,22 @@ ingester:
 
 schema_config:
   configs:
-  - from: 2018-04-15
-    store: boltdb
-    object_store: filesystem
+  - from: 2019-11-07
+    store: cassandra
+    object_store: aws
     schema: v9
     index:
       prefix: index_
       period: 168h
 
 storage_config:
-  boltdb:
-    directory: /tmp/loki/index
+  cassandra:
+    addresses: scylla
+    keyspace: loki_index
 
-  filesystem:
-    directory: /tmp/loki/chunks
+  aws:
+    s3: http://loki:loki_0123456789@minio.:9000/loki_chunks/
+    s3forcepathstyle: true
 
 limits_config:
   enforce_metric_name: false

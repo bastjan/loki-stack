@@ -3,6 +3,10 @@ version: "3.7"
 networks:
   loki:
 
+volumes:
+  chunks:
+  index:
+
 services:
   loki:
     image: grafana/loki:v0.4.0
@@ -10,9 +14,37 @@ services:
       - "3100:3100"
     volumes:
       - ./config/loki.yaml:/config/loki.yaml
+    restart: always
     command: -config.file=/config/loki.yaml
     networks:
       - loki
+    depends_on:
+      - scylla
+      - minio
+
+  scylla:
+    image: scylladb/scylla
+    volumes:
+      - index:/var/lib/scylla
+    networks:
+      - loki
+
+  minio:
+    image: minio/minio
+    volumes:
+      - chunks:/loki_chunks
+    environment:
+      MINIO_ACCESS_KEY: loki
+      MINIO_SECRET_KEY: loki_0123456789
+    command: server /loki_chunks/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - loki
+
 
   promtail:
     image: grafana/promtail:v0.4.0
@@ -20,6 +52,8 @@ services:
       - /var/log:/var/log
     command: -config.file=/etc/promtail/docker-config.yaml
     networks:
+      - loki
+    depends_on:
       - loki
 
   grafana:
