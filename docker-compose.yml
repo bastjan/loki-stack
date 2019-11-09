@@ -21,6 +21,7 @@ services:
     depends_on:
       - scylla
       - minio
+      - consul
 
   scylla:
     image: scylladb/scylla
@@ -48,6 +49,10 @@ services:
     networks:
       - loki
 
+  consul:
+    image: consul
+    networks:
+      - loki
 
   promtail:
     image: grafana/promtail:v0.4.0

@@ -5,10 +5,11 @@ server:
 
 ingester:
   lifecycler:
-    address: 127.0.0.1
     ring:
       kvstore:
-        store: inmemory
+        store: consul
+        consul:
+          host: consul:8500
       replication_factor: 1
     final_sleep: 0s
   chunk_idle_period: 5m
