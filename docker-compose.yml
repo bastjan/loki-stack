@@ -70,6 +70,7 @@ services:
 
   consul:
     image: consul
+    command: agent -log-level=info -dev -client 0.0.0.0
     networks:
       - loki
 
