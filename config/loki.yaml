@@ -31,7 +31,7 @@ storage_config:
     keyspace: loki_index
 
   aws:
-    s3: http://loki:loki_0123456789@minio.:9000/loki_chunks/
+    s3: http://loki:loki_0123456789@minio.:9000/lokichunks
     s3forcepathstyle: true
 
 limits_config:

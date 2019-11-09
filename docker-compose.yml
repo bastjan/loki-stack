@@ -31,12 +31,15 @@ services:
 
   minio:
     image: minio/minio
+    ports:
+      - "9000:9000"
     volumes:
-      - chunks:/loki_chunks
+      - chunks:/export
     environment:
       MINIO_ACCESS_KEY: loki
       MINIO_SECRET_KEY: loki_0123456789
-    command: server /loki_chunks/
+    entrypoint: sh
+    command: -c 'mkdir -p /export/lokichunks && minio server /export'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
