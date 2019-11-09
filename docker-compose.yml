@@ -1,5 +1,19 @@
 version: "3.7"
 
+x-loki: &loki
+  image: grafana/loki:v0.4.0
+  volumes:
+    - ./config/loki.yaml:/config/loki.yaml
+  restart: always
+  entrypoint: sh
+  command: -c "loki -config.file=/config/loki.yaml -target=$$LOKI_TARGET"
+  networks:
+    - loki
+  depends_on:
+    - scylla
+    - minio
+    - consul
+
 networks:
   loki:
 
@@ -8,20 +22,25 @@ volumes:
   index:
 
 services:
-  loki:
-    image: grafana/loki:v0.4.0
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./config/loki.yaml:/config/loki.yaml
-    restart: always
-    command: -config.file=/config/loki.yaml
-    networks:
-      - loki
-    depends_on:
-      - scylla
-      - minio
-      - consul
+  loki-distributor:
+    <<: *loki
+    environment:
+      LOKI_TARGET: distributor
+
+  loki-ingester:
+    <<: *loki
+    environment:
+      LOKI_TARGET: ingester
+
+  loki-querier:
+    <<: *loki
+    environment:
+      LOKI_TARGET: querier
+
+  loki-table-manager:
+    <<: *loki
+    environment:
+      LOKI_TARGET: table-manager
 
   scylla:
     image: scylladb/scylla
@@ -58,11 +77,12 @@ services:
     image: grafana/promtail:v0.4.0
     volumes:
       - /var/log:/var/log
-    command: -config.file=/etc/promtail/docker-config.yaml
+      - ./config/promtail.varlogs.yml:/config/promtail.yaml
+    command: -config.file=/config/promtail.yaml
     networks:
       - loki
     depends_on:
-      - loki
+      - loki-distributor
 
   grafana:
     image: grafana/grafana:latest
