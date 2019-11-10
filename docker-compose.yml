@@ -6,7 +6,10 @@ x-loki: &loki
     - ./config/loki.yaml:/config/loki.yaml
   restart: always
   entrypoint: sh
-  command: -c "loki -config.file=/config/loki.yaml -target=$$LOKI_TARGET"
+  command: >
+    -c "
+      while ! nc -z scylla:9042; do echo 'Waiting for index store (scylla:9042)...'; sleep 1; done; 
+      exec loki -config.file=/config/loki.yaml -target=$$LOKI_TARGET;"
   networks:
     - loki
   depends_on:
