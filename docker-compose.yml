@@ -20,6 +20,7 @@ networks:
 volumes:
   chunks:
   index:
+  promtail_positions:
 
 services:
   loki-distributor:
@@ -79,6 +80,7 @@ services:
     volumes:
       - /var/log:/var/log
       - ./config/promtail.varlogs.yml:/config/promtail.yaml
+      - promtail_positions:/export
     command: -config.file=/config/promtail.yaml
     networks:
       - loki
