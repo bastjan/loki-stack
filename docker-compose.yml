@@ -30,6 +30,12 @@ services:
     <<: *loki
     environment:
       LOKI_TARGET: distributor
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.distributors.loadbalancer.server.port=3100"
+      - "traefik.http.services.distributors.loadbalancer.healthcheck.path=/ready"
+      - "traefik.http.routers.distributors.rule=Host(`distributors`)"
+      - "traefik.http.routers.distributors.entrypoints=web"
 
   loki-ingester:
     <<: *loki
@@ -40,6 +46,12 @@ services:
     <<: *loki
     environment:
       LOKI_TARGET: querier
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.queriers.loadbalancer.server.port=3100"
+      - "traefik.http.services.queriers.loadbalancer.healthcheck.path=/ready"
+      - "traefik.http.routers.queriers.rule=Host(`queriers`)"
+      - "traefik.http.routers.queriers.entrypoints=web"
 
   loki-table-manager:
     <<: *loki
@@ -96,3 +108,22 @@ services:
       - "3000:3000"
     networks:
       - loki
+
+  traefik:
+    image: "traefik:v2.0"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      loki:
+        aliases:
+          - queriers
+          - distributors
