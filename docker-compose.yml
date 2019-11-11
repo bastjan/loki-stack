@@ -83,6 +83,10 @@ services:
       retries: 3
     networks:
       - loki
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
+      - "traefik.http.routers.minio.entrypoints=web"
 
   consul:
     image: consul
@@ -108,6 +112,10 @@ services:
       - "3000:3000"
     networks:
       - loki
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.entrypoints=web"
 
   traefik:
     image: "traefik:v2.0"
